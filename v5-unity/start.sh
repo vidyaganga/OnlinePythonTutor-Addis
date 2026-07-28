@@ -27,38 +27,57 @@ else
   exit 1
 fi
 
-URL="http://localhost:8003/"
+PORT=8003
+URL="http://localhost:$PORT/"
 
-echo "Starting Python Tutor..."
-"$PY" bottle_server.py &
-SERVER_PID=$!
-
-# Stop the server cleanly when this window is closed or Ctrl-C is pressed.
-trap 'echo; echo "Stopping Python Tutor..."; kill "$SERVER_PID" 2>/dev/null; exit 0' INT TERM
-
-# Wait (up to ~15s) until the server is actually accepting connections,
-# then open the browser. Uses bash's built-in /dev/tcp - no extra tools needed.
-for _ in $(seq 1 30); do
-  if (exec 3<>/dev/tcp/localhost/8003) 2>/dev/null; then
-    exec 3>&- 3<&-
-    break
+# Opens the default web browser (Linux: xdg-open, macOS: open).
+open_browser() {
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$URL" >/dev/null 2>&1 &
+  elif command -v open >/dev/null 2>&1; then
+    open "$URL" >/dev/null 2>&1 &
+  else
+    echo "Could not open a browser automatically."
   fi
-  sleep 0.5
-done
+}
 
-# Open the default web browser (Linux: xdg-open, macOS: open).
-if command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "$URL" >/dev/null 2>&1 &
-elif command -v open >/dev/null 2>&1; then
-  open "$URL" &
-else
-  echo "Could not open a browser automatically."
+# If something is already listening on the port, don't start a second server
+# (that would crash with "Address already in use").
+if (exec 3<>/dev/tcp/localhost/$PORT) 2>/dev/null; then
+  exec 3>&- 3<&-
+  echo "Python Tutor is already running at:  $URL"
+  echo "Opening it in your browser..."
+  open_browser
+  echo
+  echo "If that address does not work, another program may be using port $PORT."
+  echo "To see what it is, run:   lsof -nP -iTCP:$PORT -sTCP:LISTEN"
+  echo "To stop it, run:          kill \$(lsof -t -iTCP:$PORT -sTCP:LISTEN)"
+  exit 0
 fi
 
-echo
-echo "Python Tutor is running at:  $URL"
-echo "If a browser tab did not open, type that address into your browser."
-echo "Keep this window open. Press Ctrl-C (or close it) to stop."
+echo "Starting Python Tutor..."
 
-# Keep the script alive so the server keeps running and Ctrl-C works.
-wait "$SERVER_PID"
+# Wait (up to ~15s) until the server is accepting connections, then open the
+# browser. Runs in the background so the server itself can stay in the
+# foreground. Uses bash's built-in /dev/tcp - no extra tools needed.
+(
+  for _ in $(seq 1 30); do
+    if (exec 3<>/dev/tcp/localhost/$PORT) 2>/dev/null; then
+      exec 3>&- 3<&-
+      open_browser
+      break
+    fi
+    sleep 0.5
+  done
+) &
+
+echo
+echo "Python Tutor will be running at:  $URL"
+echo "If a browser tab does not open, type that address into your browser."
+echo "Keep this window open. Press Ctrl-C (or close it) to stop."
+echo
+
+# Replace this shell with the server, so the server IS this process. That way
+# Ctrl-C and closing the window go straight to it and the port is always freed
+# - no leftover background process can survive and hold port $PORT.
+exec "$PY" bottle_server.py
