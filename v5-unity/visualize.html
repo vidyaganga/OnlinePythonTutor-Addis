@@ -17,6 +17,35 @@
        https://webpack.github.io/docs/long-term-caching.html -->
   <script type="text/javascript" src="build/visualize.bundle.js?32d9518d1a" charset="utf-8"></script>
 
+  <!-- AddisCoder: pare the page down to just "write code, visualize, step
+       through it". The bundle injects these sections at runtime, so hide them
+       here rather than editing the generated bundle.
+
+       #optionsPane is hidden rather than deleted on purpose: the frontend
+       still reads those <select> values and sends them to the server as
+       options_json, so the elements must stay in the page.
+
+       !important is required - the bundle appends its own stylesheet to
+       <head> at runtime, i.e. after this block. -->
+  <style type="text/css">
+    #experimentalHeader,  /* donation/survey banners + the "Get live help!" and
+                             "Start private chat" buttons and their status
+                             text, none of which can work offline */
+    #chat_div,
+    #surveyPane,
+    #optionsPane,         /* frame / primitive / pointer display settings */
+    #testCasesParent,     /* "Create test cases" */
+    #exampleSnippets,     /* example code and courses */
+    #showExampleLink,     /* ...and the link that unhides them */
+    #liveModeBtn,         /* live programming mode */
+    #publicHelpQueue,     /* "live chat is down" - it can never work offline */
+    #uiControlsPane,      /* "Customize visualization (NEW!)" */
+    #footer {             /* help links, permanent/embed links, supported
+                             languages, privacy policy, terms of service */
+      display: none !important;
+    }
+  </style>
+
 <!-- insert google-analytics.txt contents here -->
 
 </head>
