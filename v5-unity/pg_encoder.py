@@ -293,7 +293,17 @@ class ObjectEncoder:
         #
         # hacky: do other checks for strings that are indicative of files
         # that load user-written code, like 'generate_json_trace.py'
-        if gsf and gsf[0] == '/' and 'generate_json_trace.py' not in gsf:
+        #
+        # ... and skip anything the user defined themselves. Their code runs
+        # with __name__ == '__main__' (see _runscript in pg_logger.py), so
+        # getmodule() above resolves their functions and classes to *the
+        # module that started the server*. When that module's __file__ is an
+        # absolute path - which happens whenever the server is launched by
+        # absolute path, and always on Python 3.9+ - the heuristic would
+        # otherwise report every user-defined function and class as an
+        # 'imported object' instead of drawing it on the heap.
+        if (gsf and gsf[0] == '/' and 'generate_json_trace.py' not in gsf and
+            getattr(dat, '__module__', None) != '__main__'):
             is_externally_defined = True
       except (AttributeError, TypeError):
         pass # fail soft
