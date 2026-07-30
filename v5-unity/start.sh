@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Python Tutor - offline launcher (AddisCoder)
+# Python Tutor - offline launcher for Mac and Linux (AddisCoder)
 #
 # HOW TO USE:
 #   Open a terminal in this folder and run:   ./start.sh
 #   (or double-click it and choose "Run in Terminal")
+#
+# Windows users: double-click start.bat instead.
 #
 # It starts the local server and opens Python Tutor in your web browser.
 # Everything runs on this machine only - no internet is used.
