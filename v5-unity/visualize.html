@@ -44,6 +44,14 @@
                              languages, privacy policy, terms of service */
       display: none !important;
     }
+
+    /* Every error message is followed by a "(see UNSUPPORTED FEATURES)" link
+       to GitHub, in its own div. The link is dead without a network, so hide
+       it - the error message itself is text directly inside #errorOutput and
+       is unaffected. */
+    #errorOutput > div {
+      display: none !important;
+    }
   </style>
 
 <!-- insert google-analytics.txt contents here -->
